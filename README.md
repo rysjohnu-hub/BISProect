@@ -12,8 +12,7 @@ This project is a simple and efficient expenditure and income tracker designed t
 
 ## Team Members
 - **Ryskali Zhangarys**
-- **Nuraliyev Miras**
-- **Moldabayeva Madina**
+- **Tursynmamet Ayan**
 
 ## Technologies Used
 - Programming Language: [Python, JavaScript]

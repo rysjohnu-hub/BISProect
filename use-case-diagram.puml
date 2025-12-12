@@ -1,0 +1,179 @@
+@startuml Financial Tracker - Use Case Diagram
+
+skinparam packageStyle rectangle
+skinparam actorStyle awesome
+skinparam usecaseStyle uml2
+skinparam rectangle {
+    BackgroundColor #E8F4F8
+    BorderColor #2E86AB
+}
+
+left to right direction
+
+' ============================================
+' ACTORS
+' ============================================
+actor "Guest\n(Unauthenticated)" as Guest #LightBlue
+actor "User\n(Authenticated)" as User #LightGreen
+actor "Admin\n(Administrator)" as Admin #LightCoral
+
+' Inheritance: Admin inherits all User capabilities
+User <|-- Admin
+
+' ============================================
+' SYSTEM BOUNDARY
+' ============================================
+rectangle "Financial Tracker System" #FFF9E6 {
+  
+  ' ============================================
+  ' AUTHENTICATION MODULE
+  ' ============================================
+  package "Authentication" #FFE5E5 {
+    usecase "Register" as UC_Register
+    usecase "Login" as UC_Login
+    usecase "Logout" as UC_Logout
+  }
+  
+  ' ============================================
+  ' TRANSACTION MANAGEMENT MODULE
+  ' ============================================
+  package "Transaction Management" #E5F5E5 {
+    usecase "Add Transaction" as UC_AddTransaction
+    usecase "View Transactions" as UC_ViewTransactions
+    usecase "Edit Transaction" as UC_EditTransaction
+    usecase "Delete Transaction" as UC_DeleteTransaction
+    usecase "Filter Transactions" as UC_FilterTransactions
+  }
+  
+  ' ============================================
+  ' GOAL MANAGEMENT MODULE
+  ' ============================================
+  package "Goal Management" #E5E5FF {
+    usecase "Add Goal" as UC_AddGoal
+    usecase "View Goals" as UC_ViewGoals
+    usecase "Edit Goal" as UC_EditGoal
+    usecase "Delete Goal" as UC_DeleteGoal
+  }
+  
+  ' ============================================
+  ' NOTIFICATIONS MODULE
+  ' ============================================
+  package "Notifications" #FFF5E5 {
+    usecase "View Notifications" as UC_ViewNotifications
+    usecase "Mark as Read" as UC_MarkRead
+    usecase "Clear Notifications" as UC_ClearNotifications
+  }
+  
+  ' ============================================
+  ' PROFILE MANAGEMENT MODULE
+  ' ============================================
+  package "Profile Management" #F5E5FF {
+    usecase "View Profile" as UC_ViewProfile
+    usecase "Edit Profile" as UC_EditProfile
+  }
+  
+  ' ============================================
+  ' ADMIN PANEL MODULE
+  ' ============================================
+  package "Admin Panel" #FFE5F5 {
+    usecase "View All Users" as UC_ViewAllUsers
+    usecase "Create User" as UC_CreateUser
+    usecase "Edit User" as UC_EditUser
+    usecase "Delete User" as UC_DeleteUser
+    usecase "View All Goals" as UC_ViewAllGoals
+    usecase "View All Transactions" as UC_ViewAllTransactions
+  }
+  
+  ' ============================================
+  ' SYSTEM FEATURES
+  ' ============================================
+  usecase "Switch Language" as UC_SwitchLanguage
+}
+
+' ============================================
+' GUEST ASSOCIATIONS
+' ============================================
+Guest --> UC_Register
+Guest --> UC_Login
+
+' ============================================
+' USER ASSOCIATIONS
+' ============================================
+User --> UC_Login
+User --> UC_Logout
+User --> UC_AddTransaction
+User --> UC_ViewTransactions
+User --> UC_EditTransaction
+User --> UC_DeleteTransaction
+User --> UC_FilterTransactions
+User --> UC_AddGoal
+User --> UC_ViewGoals
+User --> UC_EditGoal
+User --> UC_DeleteGoal
+User --> UC_ViewNotifications
+User --> UC_MarkRead
+User --> UC_ClearNotifications
+User --> UC_ViewProfile
+User --> UC_EditProfile
+User --> UC_SwitchLanguage
+
+' ============================================
+' ADMIN ASSOCIATIONS
+' Admin inherits all User capabilities via inheritance
+' Plus additional admin-only use cases
+' ============================================
+Admin --> UC_ViewAllUsers
+Admin --> UC_CreateUser
+Admin --> UC_EditUser
+Admin --> UC_DeleteUser
+Admin --> UC_ViewAllGoals
+Admin --> UC_ViewAllTransactions
+
+' ============================================
+' EXTEND RELATIONSHIPS
+' (Optional behavior - notifications triggered)
+' ============================================
+UC_AddTransaction ..> UC_ViewNotifications : <<extend>>\n(triggers notification)
+UC_AddGoal ..> UC_ViewNotifications : <<extend>>\n(triggers notification)
+
+' ============================================
+' INCLUDE RELATIONSHIPS
+' (Mandatory behavior - must view before edit/delete)
+' ============================================
+UC_EditTransaction ..> UC_ViewTransactions : <<include>>
+UC_DeleteTransaction ..> UC_ViewTransactions : <<include>>
+UC_EditGoal ..> UC_ViewGoals : <<include>>
+UC_DeleteGoal ..> UC_ViewGoals : <<include>>
+UC_EditProfile ..> UC_ViewProfile : <<include>>
+
+' ============================================
+' NOTES AND CLARIFICATIONS
+' ============================================
+note right of UC_ViewAllUsers
+  <b>Admin Only</b>
+  View all registered users
+  with their details including
+  goals and transactions
+end note
+
+note right of UC_CreateUser
+  <b>Admin Only</b>
+  Create new users with
+  role assignment (admin/user)
+end note
+
+note right of UC_EditUser
+  <b>Admin Only</b>
+  Edit any user's profile:
+  name, email, password, role
+end note
+
+note bottom of UC_SwitchLanguage
+  <b>Multi-language Support</b>
+  Available languages:
+  • English
+  • Russian
+  • Kazakh
+end note
+
+@enduml

@@ -1,0 +1,200 @@
+<div class="filter-container">
+  <label>
+    {{ 'common.type' | translate }}:
+    <select [(ngModel)]="filterType" (change)="applyFilters()">
+      <option value="">{{ 'common.all' | translate }}</option>
+      <option value="income">{{ 'transaction.income' | translate }}</option>
+      <option value="expense">{{ 'transaction.expense' | translate }}</option>
+    </select>
+  </label>
+
+  <label>
+    {{ 'common.category' | translate }}:
+    <select [(ngModel)]="filterCategory" (change)="applyFilters()">
+      <option value="">{{ 'common.all' | translate }}</option>
+      <option *ngFor="let cat of availableCategories" [value]="cat">
+        {{ cat }}
+      </option>
+    </select>
+  </label>
+
+  <label>
+    {{ 'common.from' | translate }}:
+    <input type="date" [(ngModel)]="filterDateFrom" (change)="applyFilters()" />
+  </label>
+
+  <label>
+    {{ 'common.to' | translate }}:
+    <input type="date" [(ngModel)]="filterDateTo" (change)="applyFilters()" />
+  </label>
+
+  <button (click)="clearFilters()">{{ 'common.resetFilters' | translate }}</button>
+</div>
+
+
+<div class="summary-container">
+  <p class="income">{{ 'transaction.totalIncome' | translate }}: {{ overallIncome | amount }}₸</p>
+  <p class="expense">{{ 'transaction.totalExpense' | translate }}: {{ overallExpense | amount }}₸</p>
+</div>
+
+
+<div
+  class="summary-container"
+  *ngIf="
+    filteredTransactions.length > 0 &&
+    (filterType || filterCategory || filterDateFrom || filterDateTo)
+  "
+>
+  <p *ngIf="filterType === 'income' || !filterType" class="income">
+    {{ 'transaction.filteredIncome' | translate }}: {{ totalIncome | amount }}₸
+  </p>
+  <p *ngIf="filterType === 'expense' || !filterType" class="expense">
+    {{ 'transaction.filteredExpense' | translate }}: {{ totalExpense | amount }}₸
+  </p>
+</div>
+
+
+<ul
+  *ngIf="filteredTransactions.length > 0; else noTransactions"
+  class="transaction-list"
+>
+  <li *ngFor="let t of displayedTransactions" class="transaction-item">
+    <div class="transaction-info">
+      {{ t.date | date : "dd.MM.yyyy" }} |
+      {{ t.transaction_type === "income" ? ('transaction.income' | translate) : ('transaction.expense' | translate) }} |
+      {{ translateCategory(t.category, t.transaction_type) }} |
+      <span
+        [class.income]="t.transaction_type === 'income'"
+        [class.expense]="t.transaction_type === 'expense'"
+      >
+        {{ t.amount | amount }}₸
+      </span>
+      <span *ngIf="t.description"> — {{ t.description }}</span>
+    </div>
+    <div class="transaction-actions">
+      <button type="button" (click)="startEdit(t)" class="edit-btn">{{ 'common.edit' | translate }}</button>
+      <button type="button" (click)="deleteTransaction(t.id!, $event)" class="delete-btn">
+        {{ 'common.delete' | translate }}
+      </button>
+    </div>
+  </li>
+</ul>
+
+
+<div class="pagination" *ngIf="totalPages > 1">
+  <button
+    type="button"
+    class="pagination-button"
+    [disabled]="currentPage === 1"
+    (click)="previousPage()"
+  >
+    ←
+  </button>
+
+  <ng-container *ngFor="let page of pages">
+    <ng-container *ngIf="page === -1">
+      <span class="pagination-ellipsis">...</span>
+    </ng-container>
+    <button
+      *ngIf="page !== -1"
+      type="button"
+      class="pagination-button"
+      [class.active]="page === currentPage"
+      (click)="goToPage(page)"
+    >
+      {{ page }}
+    </button>
+  </ng-container>
+
+  <button
+    type="button"
+    class="pagination-button"
+    [disabled]="currentPage === totalPages"
+    (click)="nextPage()"
+  >
+    →
+  </button>
+</div>
+
+<ng-template #noTransactions>
+  <p class="no-transactions">{{ 'common.noTransactions' | translate }}</p>
+</ng-template>
+
+<!-- Edit Modal -->
+<div *ngIf="editingTransaction" class="edit-modal">
+  <div class="modal-content">
+    <h3>{{ 'transaction.editTransaction' | translate }}</h3>
+    <form (ngSubmit)="saveEdit()">
+      <div class="form-group">
+        <label for="edit-type">{{ 'common.type' | translate }}:</label>
+        <select 
+          id="edit-type"
+          [(ngModel)]="editingTransaction.transaction_type" 
+          name="edit-type" 
+          required 
+          (change)="onTypeChangeEdit()">
+          <option value="income">{{ 'transaction.income' | translate }}</option>
+          <option value="expense">{{ 'transaction.expense' | translate }}</option>
+        </select>
+      </div>
+
+      <div class="form-group">
+        <label for="edit-category">{{ 'common.category' | translate }}:</label>
+        <select 
+          id="edit-category"
+          [(ngModel)]="editingTransaction.category" 
+          name="edit-category" 
+          required>
+          <option [value]="''" disabled hidden>{{ 'common.selectCategory' | translate }}</option>
+          <option *ngFor="let cat of editCategories" [value]="cat">{{ cat }}</option>
+        </select>
+      </div>
+
+      <div class="form-group">
+        <label for="edit-amount">{{ 'common.amount' | translate }}:</label>
+        <input
+          id="edit-amount"
+          [(ngModel)]="editingTransaction.amount"
+          name="edit-amount"
+          type="number"
+          required
+          min="0"
+          step="0.01"
+          [value]="editingTransaction.amount === 0 ? '' : editingTransaction.amount"
+          (focus)="onAmountFocusEdit()"
+          (blur)="onAmountBlurEdit()"
+          placeholder="0.00"
+        />
+      </div>
+
+      <div class="form-group">
+        <label for="edit-date">{{ 'common.date' | translate }}:</label>
+        <input 
+          id="edit-date"
+          [(ngModel)]="editingTransaction.date" 
+          name="edit-date" 
+          type="date" 
+          required 
+          [max]="getTodayDate()"
+        />
+      </div>
+
+      <div class="form-group">
+        <label for="edit-description">{{ 'common.description' | translate }}:</label>
+        <input 
+          id="edit-description"
+          [(ngModel)]="editingTransaction.description" 
+          name="edit-description" 
+          [placeholder]="'common.commentOptional' | translate"
+        />
+      </div>
+
+      <div class="modal-actions">
+        <button type="submit" class="save-btn">{{ 'common.save' | translate }}</button>
+        <button type="button" (click)="cancelEdit()" class="cancel-btn">
+          {{ 'common.cancel' | translate }}
+        </button>
+      </div>
+    </form>
+  </div>
+</div>

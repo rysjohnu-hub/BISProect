@@ -1,0 +1,145 @@
+<div class="profile-container">
+  <div class="language-switcher-fixed">
+    <app-language-switcher></app-language-switcher>
+  </div>
+
+  <div class="notification-bell-fixed">
+    <app-notification-bell></app-notification-bell>
+  </div>
+
+  <div class="profile-header">
+    <h1>{{ 'profile.title' | translate }}</h1>
+    <div class="header-actions">
+      <button class="btn btn-outline-secondary" (click)="goToDashboard()">
+        {{ 'common.transactions' | translate }}
+      </button>
+      <button class="btn btn-outline-success" (click)="goToGoals()">
+        {{ 'common.goals' | translate }}
+      </button>
+      <button class="btn btn-outline-danger" (click)="logout()">
+        {{ 'common.logout' | translate }}
+      </button>
+    </div>
+  </div>
+
+  <div *ngIf="loading && !user" class="loading">
+    {{ 'common.loading' | translate }}...
+  </div>
+
+  <div *ngIf="user" class="profile-content">
+    <div class="profile-card">
+      <div class="profile-info-header">
+        <h2>{{ 'profile.profileInformation' | translate }}</h2>
+        <button 
+          *ngIf="!editMode" 
+          class="btn btn-primary" 
+          (click)="toggleEditMode()">
+          {{ 'profile.editProfile' | translate }}
+        </button>
+        <button 
+          *ngIf="editMode" 
+          class="btn btn-secondary" 
+          (click)="toggleEditMode()">
+          {{ 'common.cancel' | translate }}
+        </button>
+      </div>
+
+      <div *ngIf="!editMode" class="profile-display">
+        <div class="info-item">
+          <label>{{ 'common.name' | translate }}:</label>
+          <span>{{ user.name }}</span>
+        </div>
+
+        <div class="info-item">
+          <label>{{ 'common.email' | translate }}:</label>
+          <span>{{ user.email }}</span>
+        </div>
+
+        <div class="info-item">
+          <label>{{ 'profile.role' | translate }}:</label>
+          <span class="role-badge" [class.admin-role]="user.role === 'admin'">
+            {{ user.role === 'admin' ? ('admin.roleAdmin' | translate) : ('admin.roleUser' | translate) }}
+          </span>
+        </div>
+      </div>
+
+      <form *ngIf="editMode" (ngSubmit)="updateProfile()" class="profile-edit-form">
+        <div class="form-group">
+          <label for="name">{{ 'common.name' | translate }}</label>
+          <input 
+            type="text" 
+            id="name" 
+            [(ngModel)]="profileData.name" 
+            name="name" 
+            autocomplete="name"
+            required
+            [placeholder]="'common.enterName' | translate">
+        </div>
+
+        <div class="form-group">
+          <label for="email">{{ 'common.email' | translate }}</label>
+          <input 
+            type="email" 
+            id="email" 
+            [(ngModel)]="profileData.email" 
+            name="email" 
+            autocomplete="email"
+            required
+            [placeholder]="'common.enterEmail' | translate">
+        </div>
+
+        <div class="form-group">
+          <label for="password">{{ 'profile.newPassword' | translate }} ({{ 'common.optional' | translate }})</label>
+          <input 
+            type="password" 
+            id="password" 
+            [(ngModel)]="profileData.password" 
+            name="password" 
+            autocomplete="new-password"
+            [placeholder]="'profile.enterNewPassword' | translate">
+        </div>
+
+        <div class="form-group" *ngIf="profileData.password">
+          <label for="confirmPassword">{{ 'common.confirmPassword' | translate }}</label>
+          <div class="password-input-wrapper">
+            <input 
+              [type]="showPassword ? 'text' : 'password'" 
+              id="confirmPassword" 
+              [(ngModel)]="profileData.confirmPassword" 
+              name="confirmPassword" 
+              autocomplete="new-password"
+              [placeholder]="'common.confirmPasswordPlaceholder' | translate">
+            <button 
+              type="button"
+              class="btn-eye" 
+              (click)="togglePasswordVisibility()"
+              [title]="showPassword ? ('profile.hidePassword' | translate) : ('profile.showPassword' | translate)">
+              <span *ngIf="!showPassword">👁️</span>
+              <span *ngIf="showPassword">👁️‍🗨️</span>
+            </button>
+          </div>
+        </div>
+
+        <div *ngIf="error" class="alert alert-danger">{{ error }}</div>
+        <div *ngIf="success" class="alert alert-success">{{ success }}</div>
+
+        <div class="form-actions">
+          <button 
+            type="submit" 
+            class="btn btn-primary" 
+            [disabled]="loading">
+            {{ loading ? ('common.saving' | translate) : ('common.save' | translate) }}
+          </button>
+          <button 
+            type="button" 
+            class="btn btn-secondary" 
+            (click)="toggleEditMode()"
+            [disabled]="loading">
+            {{ 'common.cancel' | translate }}
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
+

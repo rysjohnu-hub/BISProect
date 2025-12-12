@@ -1,0 +1,35 @@
+<form  #form="ngForm" class="form-container">
+  <label for="type">{{ 'common.type' | translate }}:</label>
+  <select [(ngModel)]="transaction.transaction_type" name="type" id="type" required (change)="onTypeChange()">
+    <option value="income">{{ 'transaction.income' | translate }}</option>
+    <option value="expense">{{ 'transaction.expense' | translate }}</option>
+  </select>
+
+  <label for="category">{{ 'common.category' | translate }}:</label>
+  <select [(ngModel)]="transaction.category" name="category" id="category" required>
+    <option [value]="''" disabled hidden>{{ 'common.selectCategory' | translate }}</option>
+    <option *ngFor="let cat of categories" [value]="cat">{{ cat }}</option>
+  </select>
+
+  <label for="amount">{{ 'common.amount' | translate }}:</label>
+  <input
+  [(ngModel)]="transaction.amount"
+  name="amount"
+  id="amount"
+  transaction_type="number"
+  required
+  [value]="transaction.amount === 0 ? '' : transaction.amount"
+  (focus)="onAmountFocus()"
+  (blur)="onAmountBlur()"
+  placeholder="0.00"
+/>
+
+  <label for="date">{{ 'common.date' | translate }}:</label>
+  <input [(ngModel)]="transaction.date" name="date" id="date" type="date"   required [max]="getTodayDate()">
+
+  <label for="description">{{ 'common.description' | translate }}:</label>
+  <input [(ngModel)]="transaction.description" name="description" id="description" [placeholder]="'common.commentOptional' | translate">
+
+
+  <button (click)="addTransaction()">{{ 'transaction.addTransaction' | translate }}</button>
+</form>

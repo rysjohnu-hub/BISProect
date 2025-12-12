@@ -1,0 +1,60 @@
+<div class="notifications-container">
+  <div class="language-switcher-fixed">
+    <app-language-switcher></app-language-switcher>
+  </div>
+
+  <div class="notifications-header">
+    <h1>{{ 'notifications.title' | translate }}</h1>
+    <div class="header-actions">
+      <button *ngIf="hasNotifications && hasUnreadNotifications" 
+              class="btn btn-sm btn-outline-primary" 
+              (click)="markAllAsRead()">
+        {{ 'notifications.markAllRead' | translate }}
+      </button>
+      <button *ngIf="hasNotifications" 
+              class="btn btn-sm btn-outline-danger" 
+              (click)="clearAll()">
+        {{ 'notifications.clearAll' | translate }}
+      </button>
+    </div>
+  </div>
+
+  <div *ngIf="!hasNotifications" class="no-notifications">
+    <p>{{ 'notifications.noNotifications' | translate }}</p>
+  </div>
+
+  <div *ngIf="hasNotifications" class="notifications-list">
+    <div *ngFor="let notification of notifications" 
+         class="notification-item" 
+         [class.unread]="!notification.read"
+         (click)="markAsRead(notification)">
+      <div class="notification-content">
+        <div class="notification-message">
+          <span *ngIf="!notification.read" class="unread-indicator">●</span>
+          {{ getTranslatedMessage(notification) }}
+        </div>
+        <div class="notification-meta">
+          <span class="notification-date">{{ formatDate(notification.createdAt) }}</span>
+          <button class="btn-delete" (click)="deleteNotification(notification.id, $event)" title="Delete">
+            ×
+          </button>
+        </div>
+      </div>
+      <div *ngIf="notification.type === 'goal_deadline' && notification.goalId" class="notification-actions">
+        <button class="btn btn-sm btn-primary" (click)="goToGoals()">
+          {{ 'notifications.viewGoal' | translate }}
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <div class="navigation-buttons">
+    <button class="btn btn-outline-secondary" (click)="goToDashboard()">
+      {{ 'common.transactions' | translate }}
+    </button>
+    <button class="btn btn-outline-success" (click)="goToGoals()">
+      {{ 'common.goals' | translate }}
+    </button>
+  </div>
+</div>
+

@@ -1,0 +1,25 @@
+<div class="language-switcher-fixed">
+  <app-language-switcher></app-language-switcher>
+</div>
+
+<div class="notification-bell-fixed">
+  <app-notification-bell></app-notification-bell>
+</div>
+
+<div class="home-container">
+  <h1>{{ 'goals.myGoals' | translate }}</h1>
+
+  <section class="form-section">
+    <h2>{{ 'goals.addGoal' | translate }}</h2>
+    <app-goal-form (goalAdded)="onGoalAdded()"></app-goal-form>
+  </section>
+
+  <section class="list-section">
+    <h2>{{ 'goals.goalList' | translate }}</h2>
+    <app-goal-list></app-goal-list>
+  </section>
+</div>
+
+<div class="goals-container">
+  <button class="btn btn-outline-success" (click)="onToDashboard()">{{ 'common.transactions' | translate }}</button>
+</div>

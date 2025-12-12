@@ -1,0 +1,13 @@
+<div class="language-switcher">
+  <select 
+    class="form-select form-select-sm" 
+    [(ngModel)]="currentLanguage"
+    (ngModelChange)="changeLanguage($event)"
+    style="min-width: 120px;"
+  >
+    <option *ngFor="let lang of languages" [value]="lang.code">
+      {{ lang.flag }} {{ lang.name }}
+    </option>
+  </select>
+</div>
+

@@ -1,0 +1,38 @@
+<div class="language-switcher-fixed">
+  <app-language-switcher></app-language-switcher>
+</div>
+
+<div class="notification-bell-fixed">
+  <app-notification-bell></app-notification-bell>
+</div>
+
+<div class="home-container">
+  <h1>{{ 'dashboard.welcome' | translate }}</h1>
+  <p>{{ 'dashboard.description' | translate }}</p>
+
+  <section class="form-section">
+    <h2>{{ 'dashboard.addTransaction' | translate }}</h2>
+    <app-transaction-form></app-transaction-form>
+  </section>
+
+  <section class="list-section">
+    <h2>{{ 'dashboard.transactionList' | translate }}</h2>
+    <app-transaction-list></app-transaction-list>
+  </section>
+</div>
+
+<div class="admin-container" *ngIf="isAdmin">
+  <button class="btn btn-outline-primary" (click)="onToAdmin()">{{ 'admin.title' | translate }}</button>
+</div>
+
+<div class="profile-container">
+  <button class="btn btn-outline-info" (click)="onToProfile()">{{ 'profile.title' | translate }}</button>
+</div>
+
+<div class="goals-container">
+  <button class="btn btn-outline-success" (click)="onToGoals()">{{ 'common.goals' | translate }}</button>
+</div>
+
+<div class="logout-container">
+  <button class="btn btn-outline-danger" (click)="onLogout()">{{ 'common.logout' | translate }}</button>
+</div>

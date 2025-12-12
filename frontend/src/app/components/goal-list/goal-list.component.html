@@ -1,0 +1,98 @@
+<!-- Goals List -->
+<div class="goals-list-container">
+  <ul class="goals-list">
+    <li *ngFor="let goal of paginatedGoals" class="goal-item">
+      <div class="goal-header">
+        <h3>{{ goal.title }}</h3>
+        <div class="goal-actions">
+          <button (click)="startEdit(goal)" class="edit-btn">{{ 'common.edit' | translate }}</button>
+          <button (click)="deleteGoal(goal.id!)" class="delete-btn">
+            {{ 'common.delete' | translate }}
+          </button>
+        </div>
+      </div>
+      <div class="goal-progress">
+        <div class="amount-info">
+          <span>{{ goal.target_amount  }}₸</span>
+        </div>
+      </div>
+      <div class="goal-deadline">{{ 'common.deadline' | translate }}: {{ goal.deadline | date : "dd.MM.yyyy" }}</div>
+    </li>
+  </ul>
+
+  <div *ngIf="goals.length === 0" class="no-goals">
+    <p>{{ 'goals.noGoals' | translate }}</p>
+  </div>
+
+  <div *ngIf="goals.length > 0" class="pagination">
+    <button
+      (click)="changePage(currentPage - 1)"
+      [disabled]="currentPage === 1"
+      class="pagination-btn"
+    >
+      {{ 'common.back' | translate }}
+    </button>
+    <button
+      *ngFor="let page of getPages()"
+      (click)="changePage(page)"
+      [class.active]="page === currentPage"
+      class="pagination-btn"
+    >
+      {{ page }}
+    </button>
+    <button
+      (click)="changePage(currentPage + 1)"
+      [disabled]="currentPage === totalPages"
+      class="pagination-btn"
+    >
+      {{ 'common.forward' | translate }}
+    </button>
+  </div>
+
+  <div *ngIf="editingGoal" class="edit-modal">
+    <div class="modal-content">
+      <h3>{{ 'goals.editGoal' | translate }}</h3>
+      <form (ngSubmit)="saveEdit()">
+        <div class="form-group">
+          <label for="title">{{ 'common.title' | translate }}</label>
+          <input
+            type="text"
+            id="title"
+            [(ngModel)]="editingGoal.title"
+            name="title"
+            required
+          />
+        </div>
+        <div class="form-group">
+          <label for="target_amount">{{ 'common.amount' | translate }}</label>
+          <input
+            type="number"
+            id="target_amount"
+            [(ngModel)]="editingGoal.target_amount"
+            name="target_amount"
+            min="0"
+            step="0.01"
+            required
+          />
+        </div>
+        <div class="form-group">
+          <label for="deadline">{{ 'common.deadline' | translate }}</label>
+          <input
+            type="date"
+            id="deadline"
+            [(ngModel)]="editingGoal.deadline"
+            name="deadline"
+            [min]="getTodayDate()"
+            required
+          />
+        </div>
+        <div class="modal-actions">
+          <button type="submit" class="save-btn">{{ 'common.save' | translate }}</button>
+          <button type="button" (click)="cancelEdit()" class="cancel-btn">
+            {{ 'common.cancel' | translate }}
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>

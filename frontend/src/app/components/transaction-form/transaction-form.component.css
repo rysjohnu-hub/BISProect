@@ -1,0 +1,23 @@
+.form-container {
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+  }
+  
+  input, select, button {
+    padding: 0.5rem;
+    font-size: 1rem;
+  }
+  
+  button {
+    background-color: #2ecc71;
+    color: white;
+    border: none;
+    cursor: pointer;
+    border-radius: 5px;
+  }
+  
+  button:hover {
+    background-color: #27ae60;
+  }
+  

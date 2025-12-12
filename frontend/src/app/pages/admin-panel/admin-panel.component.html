@@ -1,0 +1,334 @@
+<div class="admin-panel-container">
+  <div class="language-switcher-fixed">
+    <app-language-switcher></app-language-switcher>
+  </div>
+
+  <div class="notification-bell-fixed">
+    <app-notification-bell></app-notification-bell>
+  </div>
+
+  <div class="admin-header">
+    <h1>{{ 'admin.title' | translate }}</h1>
+    <div class="header-actions">
+      <button class="btn btn-outline-secondary" (click)="goToDashboard()">
+        {{ 'common.transactions' | translate }}
+      </button>
+      <button class="btn btn-outline-success" (click)="goToGoals()">
+        {{ 'common.goals' | translate }}
+      </button>
+    </div>
+  </div>
+
+  <!-- Tabs -->
+  <div class="admin-tabs">
+    <button 
+      class="tab-button" 
+      [class.active]="activeTab === 'users'"
+      (click)="switchTab('users')">
+      {{ 'admin.users' | translate }}
+    </button>
+    <button 
+      class="tab-button" 
+      [class.active]="activeTab === 'goals'"
+      (click)="switchTab('goals')">
+      {{ 'admin.allGoals' | translate }}
+    </button>
+    <button 
+      class="tab-button" 
+      [class.active]="activeTab === 'transactions'"
+      (click)="switchTab('transactions')">
+      {{ 'admin.allTransactions' | translate }}
+    </button>
+  </div>
+
+  <!-- Users Tab -->
+  <div *ngIf="activeTab === 'users'" class="admin-content">
+    <div class="users-section">
+      <div class="section-header">
+        <h2>{{ 'admin.users' | translate }}</h2>
+        <button class="btn btn-primary" (click)="openCreateUserModal()">
+          {{ 'admin.createUser' | translate }}
+        </button>
+      </div>
+
+      <div *ngIf="loading" class="loading">{{ 'common.loading' | translate }}</div>
+
+      <div class="users-list" *ngIf="!loading">
+        <div 
+          *ngFor="let user of users" 
+          class="user-card"
+          [class.selected]="selectedUser?.id === user.id"
+          (click)="selectUser(user)">
+          <div class="user-info">
+            <h3>{{ user.name }}</h3>
+            <p class="user-email">{{ user.email }}</p>
+            <span class="user-role" [class.admin-role]="user.role === 'admin'">
+              {{ user.role === 'admin' ? ('admin.roleAdmin' | translate) : ('admin.roleUser' | translate) }}
+            </span>
+          </div>
+          <button 
+            class="btn-delete-user" 
+            (click)="deleteUser(user.id); $event.stopPropagation()"
+            *ngIf="selectedUser?.id !== user.id">
+            {{ 'common.delete' | translate }}
+          </button>
+        </div>
+      </div>
+
+      <!-- Selected User Details -->
+      <div *ngIf="selectedUser" class="user-details">
+        <div class="details-header">
+          <h2>{{ 'admin.userDetails' | translate }}: {{ selectedUser.name }}</h2>
+          <div class="header-actions-details">
+            <button *ngIf="!editingUser" class="btn btn-primary btn-sm" (click)="startEditUser()">
+              {{ 'common.edit' | translate }}
+            </button>
+            <button class="btn-close" (click)="selectedUser = null; editingUser = null">×</button>
+          </div>
+        </div>
+        
+        <div class="details-content" *ngIf="!editingUser">
+          <div class="detail-item">
+            <strong>{{ 'common.name' | translate }}:</strong> {{ selectedUser.name }}
+          </div>
+          <div class="detail-item">
+            <strong>{{ 'common.email' | translate }}:</strong> {{ selectedUser.email }}
+          </div>
+          <div class="detail-item">
+            <strong>{{ 'admin.role' | translate }}:</strong> 
+            <span [class.admin-role]="selectedUser.role === 'admin'">
+              {{ selectedUser.role === 'admin' ? ('admin.roleAdmin' | translate) : ('admin.roleUser' | translate) }}
+            </span>
+          </div>
+
+          <div class="user-stats">
+            <div class="stat-item">
+              <strong>{{ 'admin.goalsCount' | translate }}:</strong> {{ selectedUser.goals?.length || 0 }}
+            </div>
+            <div class="stat-item">
+              <strong>{{ 'admin.transactionsCount' | translate }}:</strong> {{ selectedUser.transactions?.length || 0 }}
+            </div>
+          </div>
+
+          <div *ngIf="selectedUser.goals && selectedUser.goals.length > 0" class="user-goals">
+            <h3>{{ 'admin.userGoals' | translate }}</h3>
+            <ul>
+              <li *ngFor="let goal of selectedUser.goals">
+                {{ goal.title }} - {{ goal.target_amount }}₸
+                <span *ngIf="goal.deadline"> ({{ 'common.deadline' | translate }}: {{ goal.deadline | date:'dd.MM.yyyy' }})</span>
+              </li>
+            </ul>
+          </div>
+
+          <div *ngIf="selectedUser.transactions && selectedUser.transactions.length > 0" class="user-transactions">
+            <h3>{{ 'admin.userTransactions' | translate }}</h3>
+            <ul>
+              <li *ngFor="let transaction of selectedUser.transactions">
+                {{ transaction.date | date:'dd.MM.yyyy' }} - 
+                {{ transaction.transaction_type === 'income' ? ('transaction.income' | translate) : ('transaction.expense' | translate) }} - 
+                {{ transaction.amount }}₸ - 
+                {{ transaction.category }}
+              </li>
+            </ul>
+          </div>
+
+          <button 
+            class="btn btn-danger" 
+            (click)="deleteUser(selectedUser.id)">
+            {{ 'admin.deleteUser' | translate }}
+          </button>
+        </div>
+
+        <!-- Edit User Form -->
+        <div class="edit-user-form" *ngIf="editingUser">
+          <h3>{{ 'admin.editUser' | translate }}</h3>
+          <form (ngSubmit)="updateUser()">
+            <div class="form-group">
+              <label for="editUserName">{{ 'common.name' | translate }}</label>
+              <input 
+                type="text" 
+                id="editUserName" 
+                [(ngModel)]="editUserData.name" 
+                name="editUserName" 
+                autocomplete="name"
+                required
+                [placeholder]="'common.enterName' | translate">
+            </div>
+
+            <div class="form-group">
+              <label for="editUserEmail">{{ 'common.email' | translate }}</label>
+              <input 
+                type="email" 
+                id="editUserEmail" 
+                [(ngModel)]="editUserData.email" 
+                name="editUserEmail" 
+                autocomplete="email"
+                required
+                [placeholder]="'common.enterEmail' | translate">
+            </div>
+
+            <div class="form-group">
+              <label for="editUserPassword">{{ 'profile.newPassword' | translate }} ({{ 'common.optional' | translate }})</label>
+              <div class="password-input-wrapper">
+                <input 
+                  [type]="showPassword ? 'text' : 'password'" 
+                  id="editUserPassword" 
+                  [(ngModel)]="editUserData.password" 
+                  name="editUserPassword" 
+                  autocomplete="new-password"
+                  [placeholder]="'profile.enterNewPassword' | translate">
+                <button 
+                  type="button"
+                  class="btn-eye" 
+                  (click)="togglePasswordVisibility()"
+                  [title]="showPassword ? ('profile.hidePassword' | translate) : ('profile.showPassword' | translate)">
+                  <span *ngIf="!showPassword">👁️</span>
+                  <span *ngIf="showPassword">👁️‍🗨️</span>
+                </button>
+              </div>
+            </div>
+
+            <div class="form-group">
+              <label for="editUserRole">{{ 'admin.role' | translate }}</label>
+              <select id="editUserRole" [(ngModel)]="editUserData.role" name="editUserRole">
+                <option value="user">{{ 'admin.roleUser' | translate }}</option>
+                <option value="admin">{{ 'admin.roleAdmin' | translate }}</option>
+              </select>
+            </div>
+
+            <div *ngIf="error" class="alert alert-danger">{{ error }}</div>
+            <div *ngIf="success" class="alert alert-success">{{ success }}</div>
+
+            <div class="form-actions">
+              <button 
+                type="submit" 
+                class="btn btn-primary" 
+                [disabled]="loading">
+                {{ loading ? ('common.saving' | translate) : ('common.save' | translate) }}
+              </button>
+              <button 
+                type="button" 
+                class="btn btn-secondary" 
+                (click)="cancelEditUser()"
+                [disabled]="loading">
+                {{ 'common.cancel' | translate }}
+              </button>
+            </div>
+          </form>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Goals Tab -->
+  <div *ngIf="activeTab === 'goals'" class="admin-content">
+    <div class="section-header">
+      <h2>{{ 'admin.allGoals' | translate }}</h2>
+    </div>
+    <div *ngIf="loading" class="loading">Loading...</div>
+    <div class="goals-list" *ngIf="!loading">
+      <div *ngFor="let goal of allGoals" class="goal-card">
+        <div class="goal-info">
+          <h3>{{ goal.title }}</h3>
+          <p class="goal-user">{{ 'admin.user' | translate }}: {{ getUserEmail(goal.user!) }}</p>
+          <p class="goal-amount">{{ goal.current_amount || 0 }}₸ / {{ goal.target_amount }}₸</p>
+          <p *ngIf="goal.deadline" class="goal-deadline">
+            {{ 'common.deadline' | translate }}: {{ goal.deadline | date:'dd.MM.yyyy' }}
+          </p>
+        </div>
+      </div>
+      <div *ngIf="allGoals.length === 0" class="empty-state">
+        {{ 'admin.noGoals' | translate }}
+      </div>
+    </div>
+  </div>
+
+  <!-- Transactions Tab -->
+  <div *ngIf="activeTab === 'transactions'" class="admin-content">
+    <div class="section-header">
+      <h2>{{ 'admin.allTransactions' | translate }}</h2>
+    </div>
+    <div *ngIf="loading" class="loading">Loading...</div>
+    <div class="transactions-list" *ngIf="!loading">
+      <div *ngFor="let transaction of allTransactions" class="transaction-card">
+        <div class="transaction-info">
+          <p class="transaction-user">{{ 'admin.user' | translate }}: {{ getUserEmail(transaction.user!) }}</p>
+          <p class="transaction-date">{{ transaction.date | date:'dd.MM.yyyy' }}</p>
+          <p class="transaction-type" 
+             [class.income]="transaction.transaction_type === 'income'"
+             [class.expense]="transaction.transaction_type === 'expense'">
+            {{ transaction.transaction_type === 'income' ? ('transaction.income' | translate) : ('transaction.expense' | translate) }}
+          </p>
+          <p class="transaction-category">{{ transaction.category }}</p>
+          <p class="transaction-amount">{{ transaction.amount }}₸</p>
+          <p *ngIf="transaction.description" class="transaction-description">{{ transaction.description }}</p>
+        </div>
+      </div>
+      <div *ngIf="allTransactions.length === 0" class="empty-state">
+        {{ 'admin.noTransactions' | translate }}
+      </div>
+    </div>
+  </div>
+
+  <!-- Create User Modal -->
+  <div *ngIf="showCreateUserModal" class="modal-overlay" (click)="closeCreateUserModal()">
+    <div class="modal-content" (click)="$event.stopPropagation()">
+      <div class="modal-header">
+        <h3>{{ 'admin.createUser' | translate }}</h3>
+        <button class="btn-close" (click)="closeCreateUserModal()">×</button>
+      </div>
+      <form (ngSubmit)="createUser()" autocomplete="off">
+        <div class="form-group">
+          <label for="name">{{ 'common.name' | translate }}</label>
+          <input 
+            type="text" 
+            id="name" 
+            [(ngModel)]="newUser.name" 
+            name="name" 
+            autocomplete="name"
+            required
+            [placeholder]="'common.enterName' | translate">
+        </div>
+        <div class="form-group">
+          <label for="email">{{ 'common.email' | translate }}</label>
+          <input 
+            type="email" 
+            id="email" 
+            [(ngModel)]="newUser.email" 
+            name="email" 
+            autocomplete="email"
+            required
+            [placeholder]="'common.enterEmail' | translate">
+        </div>
+        <div class="form-group">
+          <label for="password">{{ 'common.password' | translate }}</label>
+          <input 
+            type="password" 
+            id="password" 
+            [(ngModel)]="newUser.password" 
+            name="password" 
+            autocomplete="new-password"
+            required
+            [placeholder]="'common.enterPassword' | translate">
+        </div>
+        <div class="form-group">
+          <label for="role">{{ 'admin.role' | translate }}</label>
+          <select id="role" [(ngModel)]="newUser.role" name="role">
+            <option value="user">{{ 'admin.roleUser' | translate }}</option>
+            <option value="admin">{{ 'admin.roleAdmin' | translate }}</option>
+          </select>
+        </div>
+        <div *ngIf="error" class="alert alert-danger">{{ error }}</div>
+        <div class="modal-actions">
+          <button type="submit" class="btn btn-primary" [disabled]="loading">
+            {{ 'admin.createUser' | translate }}
+          </button>
+          <button type="button" class="btn btn-secondary" (click)="closeCreateUserModal()">
+            {{ 'common.cancel' | translate }}
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
+

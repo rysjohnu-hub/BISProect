@@ -1,0 +1,22 @@
+.language-switcher {
+  display: inline-block;
+}
+
+.language-switcher select {
+  cursor: pointer;
+  border: 1px solid #ced4da;
+  border-radius: 0.25rem;
+  padding: 0.25rem 0.5rem;
+  background-color: white;
+}
+
+.language-switcher select:hover {
+  border-color: #86b7fe;
+}
+
+.language-switcher select:focus {
+  border-color: #86b7fe;
+  outline: 0;
+  box-shadow: 0 0 0 0.25rem rgba(13, 110, 253, 0.25);
+}
+

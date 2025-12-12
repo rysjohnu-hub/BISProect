@@ -1,0 +1,149 @@
+@startuml Financial Tracker - ER Diagram
+
+skinparam linetype ortho
+skinparam roundcorner 20
+skinparam maxMessageSize 60
+skinparam shadowing false
+skinparam entity {
+    BackgroundColor #E8F4F8
+    BorderColor #2E86AB
+}
+
+' ============================================
+' ENTITIES
+' ============================================
+
+entity "User" as User {
+  * **id** : BIGINT <<PK>>
+  --
+  * email : VARCHAR(255) <<UNIQUE>>
+  * password : VARCHAR(255)
+  * name : VARCHAR(255)
+  * role : VARCHAR(10) {admin, user}
+  * is_active : BOOLEAN
+  * is_staff : BOOLEAN
+  * is_superuser : BOOLEAN
+  * date_joined : DATETIME
+  * last_login : DATETIME
+}
+
+entity "Goal" as Goal {
+  * **id** : BIGINT <<PK>>
+  * **user_id** : BIGINT <<FK>>
+  --
+  * title : VARCHAR(100)
+  * target_amount : DECIMAL(10,2)
+  * current_amount : DECIMAL(10,2)
+  deadline : DATE {nullable}
+  * created_at : DATETIME
+  * is_completed : BOOLEAN
+}
+
+entity "Transaction" as Transaction {
+  * **id** : BIGINT <<PK>>
+  * **user_id** : BIGINT <<FK>>
+  --
+  * transaction_type : VARCHAR(7) {income, expense}
+  * category : VARCHAR(20)
+  * amount : DECIMAL(10,2)
+  * date : DATE
+  description : TEXT {nullable}
+}
+
+entity "Category" as Category {
+  * **id** : BIGINT <<PK>>
+  --
+  * name : VARCHAR(100)
+  transaction_type : VARCHAR(7) {income, expense}
+}
+
+entity "Notification" as Notification {
+  * **id** : BIGINT <<PK>>
+  * **user_id** : BIGINT <<FK>>
+  --
+  * type : VARCHAR(50)
+  * message : TEXT
+  * is_read : BOOLEAN
+  * created_at : DATETIME
+  related_goal_id : BIGINT <<FK>> {nullable}
+  related_transaction_id : BIGINT <<FK>> {nullable}
+}
+
+' ============================================
+' RELATIONSHIPS WITH CARDINALITY
+' ============================================
+
+' One-to-Many: User to Goal
+User ||--o{ Goal : "creates\n(1:N)"
+note right : CASCADE DELETE
+
+' One-to-Many: User to Transaction
+User ||--o{ Transaction : "performs\n(1:N)"
+note right : CASCADE DELETE
+
+' One-to-Many: User to Notification
+User ||--o{ Notification : "receives\n(1:N)"
+note right : CASCADE DELETE
+
+' One-to-Many: Goal to Notification (optional)
+Goal ||--o{ Notification : "triggers\n(1:N)"
+note right : Optional relationship\nfor goal deadline notifications
+
+' One-to-Many: Transaction to Notification (optional)
+Transaction ||--o{ Notification : "triggers\n(1:N)"
+note right : Optional relationship\nfor transaction notifications
+
+' Many-to-Many: Category to Transaction (via category name)
+Category }o--o{ Transaction : "categorizes\n(N:M)"
+note right : Relationship via\ncategory name string
+
+' ============================================
+' ENTITY NOTES
+' ============================================
+
+note right of User
+  **Primary Key:** id (auto-increment)
+  **Unique Constraint:** email
+  **Role Values:** 'admin' or 'user'
+  Extends Django AbstractUser model
+  Stores authentication and authorization data
+end note
+
+note right of Goal
+  **Primary Key:** id (auto-increment)
+  **Foreign Key:** user_id references User.id
+  **CASCADE DELETE:** Deleting a user
+  automatically deletes all their goals
+  Tracks financial goals with target amounts
+end note
+
+note right of Transaction
+  **Primary Key:** id (auto-increment)
+  **Foreign Key:** user_id references User.id
+  **CASCADE DELETE:** Deleting a user
+  automatically deletes all their transactions
+  **Transaction Types:** 'income' or 'expense'
+  **Category:** Stored as string for
+  multi-language support flexibility
+end note
+
+note right of Category
+  **Primary Key:** id (auto-increment)
+  Reference entity for transaction categories
+  Categories are income or expense types
+  Examples: Salary, Gift, Food, Transport, etc.
+  Used for filtering and reporting
+end note
+
+note right of Notification
+  **Primary Key:** id (auto-increment)
+  **Foreign Key:** user_id references User.id
+  **Optional Foreign Keys:**
+  - related_goal_id → Goal.id (nullable)
+  - related_transaction_id → Transaction.id (nullable)
+  **Types:** Transaction created, Goal deadline
+  Currently stored in localStorage (client-side)
+  Can be migrated to database for persistence
+end note
+
+@enduml
